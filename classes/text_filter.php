@@ -28,27 +28,31 @@ class text_filter extends \base_text_filter {
         $box = "";
         $page = "";
         // extract css for style, class, box and page from text
-        if (preg_match_all($pattern, $text, $matches)) {
-            for($i = 0; $i < count($matches[0]); $i++) {
-                $type = $matches[2][$i];
-                $css = $matches[3][$i];
-                $css = preg_replace('/[\x{202F}\\x{00A0}]/u', '', $css); // remove no break spaces
-                $css = preg_replace('/<\/?\s*\w+\s*>/', '', $css); // remove html tags
+        $text = preg_replace_callback($pattern, function($matches) use ($box_prefix, &$box, &$style, &$class, &$page) {
+            $type = $matches[2];
+            $css = $matches[3];
+            $css = preg_replace('/[\x{202F}\\x{00A0}]/u', '', $css); // remove no break spaces
+            $css = preg_replace('/<\/?\s*\w+\s*>/', '', $css); // remove html tags
 
-                if(in_array($type, ['style', 'class', 'page'])){
-                    $$type .= $css;
-                }
-                else if($type == 'box'){
-                    $css = preg_replace_callback('/\b(\w+)\b/', function($matches) use ($box_prefix) {
-                        return $box_prefix . $matches[0];
-                    }, $css);
-                    $box .= $css;
-                    if(!$box){ // enable box without classes
-                        $box = ' ';
-                    }
-                }
+            if(in_array($type, ['style', 'class', 'page'])){
+                $$type .= $css;
+                return '';
             }
-        }
+            else if($type == 'box'){
+                $css = preg_replace_callback('/\b(\w+)\b/', function($matches) use ($box_prefix) {
+                    return $box_prefix . $matches[0];
+                }, $css);
+                $box .= $css;
+                if(!$box){ // enable box without classes
+                    $box = ' ';
+                }
+                return '';
+            }
+            else {
+                // return the original text if the type is not recognized
+                return $matches[0];
+            }
+        }, $text);
 
         // replace inline box
         $text = preg_replace_callback($inline_box_pattern, function($matches) use ($box_prefix) {
@@ -62,8 +66,6 @@ class text_filter extends \base_text_filter {
             </div>";
         }, $text);
 
-        // remove cssinject tags from text
-        $text = preg_replace($pattern, '', $text);
         // correct demo paddern (remove \)
         $text = preg_replace($demo_pattern, '[!$2:$3!]', $text);
 
@@ -81,7 +83,7 @@ class text_filter extends \base_text_filter {
 
         // apply page css at the end of the text
         if($page){
-            $text = "$text<style>$page</style>";
+            $text .= "<style>$page</style>";
         }
 
         return $text;
