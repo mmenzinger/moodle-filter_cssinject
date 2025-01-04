@@ -1,22 +1,22 @@
 # moodle_filter_cssinject
 
-This simple filter allowes users to add css to their content, without switching to code-view. It also provides pre-made css-classes to visually enhance basic text areas.
+This simple filter allows users to add css to their content, without switching to code-view. It also provides pre-made css-classes to visually enhance basic text areas.
 
 ![image](https://github.com/user-attachments/assets/92219092-8bf0-4da8-a825-652f91e66c93)
 
 
 ## Usage examples
 
-Use `[!box: ... !]` to directly apply a buildin bordered css-style around the content. There are several buildin classes that can also be used. All buildin classes can be combined and are internally prefixed with `cssinject_box_` to prevent collisions.
+Use `[!box: ... !]` to directly apply a bordered css-style around the content. There are several classes that can be used. Classes of a different category can also be combined (e.g.: [!box: info purple!])
 
 To limit the box to just a part of the content, the tags `[!box-start: ... !]` and `[!box-end!]` can be used.
 ```
-[!box: info red !]
+[!box: info red!]
 [!box-start: read!] This is important to read! [!box-end!]
 ```
 Currently available classes:
 ```
-// prebuild classes
+// pre-made classes
 info
 read
 warning
