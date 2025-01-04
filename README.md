@@ -2,6 +2,9 @@
 
 This simple filter allowes users to add css to their content, without switching to code-view. It also provides pre-made css-classes to visually enhance basic text areas.
 
+![image](https://github.com/user-attachments/assets/92219092-8bf0-4da8-a825-652f91e66c93)
+
+
 ## Usage examples
 
 Use `[!box: ... !]` to directly apply a buildin bordered css-style around the content. There are several buildin classes that can also be used. All buildin classes can be combined and are internally prefixed with `cssinject_box_` to prevent collisions.
