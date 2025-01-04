@@ -16,10 +16,14 @@ Currently available classes:
 // prebuild classes
 info
 read
+warning
+stop
 
 // icons
-lamp
-book
+icon_lamp
+icon_book
+icon_warning
+icon_stop
 
 // colors
 gray
@@ -27,8 +31,9 @@ red
 green
 blue
 yellow
+orange
+purple
 ```
-
 
 Use `[!style: ... !]` to directly apply css-styles to a new div around the content. 
 ```
