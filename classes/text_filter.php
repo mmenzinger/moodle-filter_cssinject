@@ -18,7 +18,7 @@
  * Implementation of the filter_cssinject plugin.
  *
  * @package    filter_cssinject
- * @copyright  2024 Manuel Menzinger
+ * @copyright  2025 Manuel Menzinger
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -47,7 +47,7 @@ if (class_exists('\core_filters\text_filter')) {
  * - [!: ...!] ... [!!] to apply css styles to a span surrounding the content
  *
  * @package    filter_cssinject
- * @copyright  2024 Manuel Menzinger
+ * @copyright  2025 Manuel Menzinger
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class text_filter extends \base_text_filter {
@@ -62,7 +62,7 @@ class text_filter extends \base_text_filter {
         // Replace [!:...!] ... [!!] with a <span style="..."> ... </span>.
         $inline_style_pattern = '/\[\!:([^\]]*)\!\](.*?)\[\!\!\]/s';
         $class_prefix = 'cssinject_';
-        $box_prefix = "${class_prefix}box_";
+        $box_prefix = "{$class_prefix}box_";
 
         $style = "";
         $class = "";
@@ -101,9 +101,9 @@ class text_filter extends \base_text_filter {
             $css = preg_replace_callback('/\b(\w+)\b/', function($matches) use ($box_prefix) {
                 return $box_prefix . $matches[0];
             }, $matches[2]);
-            return "<div class=\"${box_prefix}container $css\">
-                <div class=\"${box_prefix}area_header\"></div>
-                <div class=\"${box_prefix}area_content\">${content}</div>
+            return "<div class=\"{$box_prefix}container {$css}\">
+                <div class=\"{$box_prefix}area_header\"></div>
+                <div class=\"{$box_prefix}area_content\">{$content}</div>
             </div>";
         }, $text);
 
@@ -111,7 +111,7 @@ class text_filter extends \base_text_filter {
         $text = preg_replace_callback($inline_style_pattern, function($matches) {
             $css = $matches[1];
             $content = $matches[2];
-            return "<span style=\"$css\">$content</span>";
+            return "<span style=\"{$css}\">{$content}</span>";
         }, $text);
 
         // Correct demo paddern (remove \).
@@ -119,19 +119,19 @@ class text_filter extends \base_text_filter {
 
         // Apply container with header and content if it is a box.
         if($box){
-            $text = "<div style=\"$style\" class=\"${box_prefix}container $box $class\">
-                <div class=\"${box_prefix}area_header\"></div>
-                <div class=\"${box_prefix}area_content\">$text</div>
+            $text = "<div style=\"{$style}\" class=\"{$box_prefix}container {$box} {$class}\">
+                <div class=\"{$box_prefix}area_header\"></div>
+                <div class=\"{$box_prefix}area_content\">{$text}</div>
             </div>";
         }
         // Else simply apply style and class to surrounding div.
         else if($style || $class){
-            $text = "<div style=\"$style\" class=\"$class\">$text</div>";
+            $text = "<div style=\"{$style}\" class=\"{$class}\">{$text}</div>";
         }
 
         // Apply page css at the end of the text.
         if($page){
-            $text .= "<style>$page</style>";
+            $text .= "<style>{$page}</style>";
         }
 
         return $text;

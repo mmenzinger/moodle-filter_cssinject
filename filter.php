@@ -18,7 +18,7 @@
  * File for backwards compatibility with Moodle 4.4 and below.
  *
  * @package    filter_cssinject
- * @copyright  2024 Manuel Menzinger
+ * @copyright  2025 Manuel Menzinger
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
