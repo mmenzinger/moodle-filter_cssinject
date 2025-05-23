@@ -38,7 +38,10 @@ orange
 purple
 ```
 
-Use `[!style: ... !]` to directly apply css-styles to a new div around the content. 
+
+## Advanced usage
+
+Use `[!style: ... !]` to directly apply css-styles to a new div around the content.
 ```
 [!style: color:red; font-weight:bold; !]
 ```
@@ -46,6 +49,12 @@ Use `[!style: ... !]` to directly apply css-styles to a new div around the conte
 Use `[!class: ... !]` to directly apply css-classes to a new div around the content.
 ```
 [!class: my_awesome_class !]
+```
+
+To limit `style` and `class` to a specific part of the content, `-start` and `-end` can be used.
+```
+[!style-start: color:green;!]...[!style-end!]
+[!class-start: my_class!]...[!class-end!]
 ```
 
 Use `[!page: ... !]` to directly add pure css to the whole page. It gets injected using a style element.
@@ -60,4 +69,37 @@ Use `[!page: ... !]` to directly add pure css to the whole page. It gets injecte
 Use `[!: ... !]` and `[!!]` to directly apply css to a new span around a part of the content.
 ```
 [!: color:red; font-weight:bold; !] Attention! [!!]
+```
+
+In general, different elements can be nested.
+```
+[!box-start: info!]
+  [!style-start: text-decoration: underline; !]...[!style-end!]
+[!box-end!]
+```
+To nest multiple of the same element, a number can be appended to the start and end tags.
+```
+[!box-start: info!]
+  [!box-start1: warning!]
+    [!box-start2: stop!]Stop![!box-end2!]
+  [!box-end1!]
+[!box-end!]
+
+[!:color:red!]T[!1:color:green!]es[!1!]t[!!]
+```
+
+For convenience there are some abbreviations for common used css attributes. These are available in style- and inline-elements.
+```
+b ... font-weight: bold;
+i ... font-style: italic;
+u ... text-decoration: underline;
+s ... text-decoration: line-through;
+c:[color] ... color: [color];
+bg:[color] ... background-color:[color];
+[number][unit] ... font-size: [number][unit];
+```
+```
+[!style-start:c:red;1.5em;u;b;!]
+Awe[!:bg:#333;c:#fff;i;s;2em;!]so[!!]me
+[!style-end!]
 ```

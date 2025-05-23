@@ -51,37 +51,51 @@ if (class_exists('\core_filters\text_filter')) {
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class text_filter extends \base_text_filter {
+    const PATTERN = '/(\s*<p>)?\s*\[\!(style|class|box|page):([^\]]*)\!\]\s*(<\/p>\s*)?/';
+    // To be able to show the pattern, [\!...!] can be used and the \ will be removed.
+    const DEMO_PATTERN = '/\[(\\\\)\!([^\]]*)\!\]/';
+    // Replace [!box-start: ...!] ... [!box-end!] and also surrounding <p> tags.
+    const NESTABLE_BLOCK_PATTERN = '/(\s*<p>)?\s*\[\!(style|class|box)-start(\d*):([^\]]*)\!\]\s*(<\/p>\s*)?(.*?)(\s*<p>)?\s*\[\!\2-end\3\!\]\s*(<\/p>\s*)?/s';
+    // Replace [!:...!] ... [!!] with a <span style="..."> ... </span>.
+    const NESTABLE_INLINE_PATTERN = '/\[\!(\d*):([^\]]*)\!\](.*?)\[\!\1\!\]/s';
+    const CLASS_PREFIX = 'cssinject_';
+    const BOX_PREFIX = "cssinject_box_";
+
     #[\Override]
     public function filter($text, array $options = []): string {
         // Replace [!style: ...!] and also surrounding <p> tags.
-        $pattern = '/(\s*<p>)?\s*\[\!(style|class|box|page):([^\]]*)\!\]\s*(<\/p>\s*)?/';
-        // To be able to show the pattern, [\!...!] can be used and the \ will be removed.
-        $demo_pattern = '/\[(\\\\)\!([^\]]*)\!\]/';
-        // Replace [!box-start: ...!] ... [!box-end!] and also surrounding <p> tags.
-        $inline_box_pattern = '/(\s*<p>)?\s*\[\!box-start:([^\]]*)\!\]\s*(<\/p>\s*)?(.*?)(\s*<p>)?\s*\[\!box-end\!\]\s*(<\/p>\s*)?/s';
-        // Replace [!:...!] ... [!!] with a <span style="..."> ... </span>.
-        $inline_style_pattern = '/\[\!:([^\]]*)\!\](.*?)\[\!\!\]/s';
-        $class_prefix = 'cssinject_';
-        $box_prefix = "{$class_prefix}box_";
+        // $pattern = '/(\s*<p>)?\s*\[\!(style|class|box|page):([^\]]*)\!\]\s*(<\/p>\s*)?/';
+        // // To be able to show the pattern, [\!...!] can be used and the \ will be removed.
+        // $demo_pattern = '/\[(\\\\)\!([^\]]*)\!\]/';
+        // // Replace [!box-start: ...!] ... [!box-end!] and also surrounding <p> tags.
+        // $nestable_block_pattern = '/(\s*<p>)?\s*\[\!(style|class|box)-start(\d*):([^\]]*)\!\]\s*(<\/p>\s*)?(.*?)(\s*<p>)?\s*\[\!\2-end\3\!\]\s*(<\/p>\s*)?/s';
+        // // Replace [!:...!] ... [!!] with a <span style="..."> ... </span>.
+        // $nestable_inline_pattern = '/\[\!(\d*):([^\]]*)\!\](.*?)\[\!\1\!\]/s';
+        // $class_prefix = 'cssinject_';
+        // $box_prefix = "{$class_prefix}box_";
 
         $style = "";
         $class = "";
         $box = "";
         $page = "";
+
         // Extract css for style, class, box and page from text.
-        $text = preg_replace_callback($pattern, function($matches) use ($box_prefix, &$box, &$style, &$class, &$page) {
+        $text = preg_replace_callback(self::PATTERN, function($matches) use (&$box, &$style, &$class, &$page) {
             $type = $matches[2];
             $css = $matches[3];
             $css = preg_replace('/[\x{202F}\\x{00A0}]/u', '', $css); // Remove no break spaces.
             $css = preg_replace('/<\/?\s*\w+\s*>/', '', $css); // Remove html tags.
 
             if(in_array($type, ['style', 'class', 'page'])){
+                if($type == 'style'){
+                    $css = $this->parseCssAbbreviations($css);
+                }
                 $$type .= $css;
                 return '';
             }
             else if($type == 'box'){
-                $css = preg_replace_callback('/\b(\w+)\b/', function($matches) use ($box_prefix) {
-                    return $box_prefix . $matches[0];
+                $css = preg_replace_callback('/\b(\w+)\b/', function($matches) {
+                    return self::BOX_PREFIX . $matches[0];
                 }, $css);
                 $box .= $css;
                 if(!$box){ // Enable box without classes.
@@ -95,33 +109,17 @@ class text_filter extends \base_text_filter {
             }
         }, $text);
 
-        // Replace inline box.
-        $text = preg_replace_callback($inline_box_pattern, function($matches) use ($box_prefix) {
-            $content = $matches[4];
-            $css = preg_replace_callback('/\b(\w+)\b/', function($matches) use ($box_prefix) {
-                return $box_prefix . $matches[0];
-            }, $matches[2]);
-            return "<div class=\"{$box_prefix}container {$css}\">
-                <div class=\"{$box_prefix}area_header\"></div>
-                <div class=\"{$box_prefix}area_content\">{$content}</div>
-            </div>";
-        }, $text);
-
-        // Replace inline span.
-        $text = preg_replace_callback($inline_style_pattern, function($matches) {
-            $css = $matches[1];
-            $content = $matches[2];
-            return "<span style=\"{$css}\">{$content}</span>";
-        }, $text);
+        $text = $this->replaceNestableBlockElements($text);
+        $text = $this->replaceNestableInlineElements($text);
 
         // Correct demo paddern (remove \).
-        $text = preg_replace($demo_pattern, '[!$2!]', $text);
+        $text = preg_replace(self::DEMO_PATTERN, '[!$2!]', $text);
 
         // Apply container with header and content if it is a box.
         if($box){
-            $text = "<div style=\"{$style}\" class=\"{$box_prefix}container {$box} {$class}\">
-                <div class=\"{$box_prefix}area_header\"></div>
-                <div class=\"{$box_prefix}area_content\">{$text}</div>
+            $text = "<div style=\"{$style}\" class=\"".self::BOX_PREFIX."container {$box} {$class}\">
+                <div class=\"".self::BOX_PREFIX."area_header\"></div>
+                <div class=\"".self::BOX_PREFIX."area_content\">{$text}</div>
             </div>";
         }
         // Else simply apply style and class to surrounding div.
@@ -135,5 +133,53 @@ class text_filter extends \base_text_filter {
         }
 
         return $text;
+    }
+
+    private function parseCssAbbreviations($css) {
+        $css = preg_replace('/\bb\b\s*;?/', 'font-weight:bold;', $css);
+        $css = preg_replace('/\bi\b\s*;?/', 'font-style:italic;', $css);
+        $css = preg_replace('/\bu\b\s*;?/', 'text-decoration:underline;', $css);
+        $css = preg_replace('/\bs\b\s*;?/', 'text-decoration:line-through;', $css);
+        $css = preg_replace('/\bc:([^;]+);?/', 'color:$1;', $css);
+        $css = preg_replace('/\bbg:([^;]+);?/', 'background-color:$1;', $css);
+        $css = preg_replace('/([:;\s])(\d+[^;]+);?/', '$1font-size:$2;', $css);
+        return $css;
+    }
+
+    private function replaceNestableInlineElements($text) {
+        return preg_replace_callback(self::NESTABLE_INLINE_PATTERN, function($matches) {
+            $css = $this->parseCssAbbreviations($matches[2]);
+            $content = $this->replaceNestableInlineElements($matches[3]);
+            return "<span style=\"{$css}\">{$content}</span>";
+        }, $text);
+    }
+
+    private function replaceNestableBlockElements($text) {
+        return preg_replace_callback(self::NESTABLE_BLOCK_PATTERN, function($matches) {
+            $content = $this->replaceNestableBlockElements($matches[6]);
+            $css = $matches[4];
+            $element = $matches[2];
+            if($element == 'box'){
+                $css = preg_replace_callback('/\b(\w+)\b/', function($matches) {
+                    return self::BOX_PREFIX . $matches[0];
+                }, $css);
+
+                return "<div class=\"".self::BOX_PREFIX."container {$css}\">
+                    <div class=\"".self::BOX_PREFIX."area_header\"></div>
+                    <div class=\"".self::BOX_PREFIX."area_content\">{$content}</div>
+                </div>";
+            }
+            else if($element == 'class'){
+                return "<div class=\"{$css}\">{$content}</div>";
+            }
+            else if($element == 'style'){
+                $css = $this->parseCssAbbreviations($css);
+                return "<div style=\"{$css}\">{$content}</div>";
+            }
+            else {
+                // Return the original text if the type is not recognized.
+                return $matches[0];
+            }
+        }, $text);
     }
 }
