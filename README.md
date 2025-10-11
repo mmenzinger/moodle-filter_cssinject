@@ -7,7 +7,7 @@ This simple filter allows users to add css to their content, without switching t
 
 ## Usage examples
 
-Use `[!box: ... !]` to directly apply a bordered css-style around the content. There are several classes that can be used. Classes of a different category can also be combined (e.g.: [!box: info purple!])
+Use `[!box: ... !]` to directly apply a bordered css-style around the content. There are several classes that can be used. Classes of a different category can also be combined (e.g.: `[!box: info purple!]`)
 
 To limit the box to just a part of the content, the tags `[!box-start: ... !]` and `[!box-end!]` can be used.
 ```

@@ -51,11 +51,11 @@ if (class_exists('\core_filters\text_filter')) {
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class text_filter extends \base_text_filter {
-    const PATTERN = '/(\s*<p>)?\s*\[\!(style|class|box|page):([^\]]*)\!\]\s*(<\/p>\s*)?/';
+    const PATTERN = '/(<p>|<\/?\s*br>)?\s*\[\!(style|class|box|page):([^\]]*)\!\]\s*(<\/p>|<\/?\s*br>)?/';
     // To be able to show the pattern, [\!...!] can be used and the \ will be removed.
     const DEMO_PATTERN = '/\[(\\\\)\!([^\]]*)\!\]/';
     // Replace [!box-start: ...!] ... [!box-end!] and also surrounding <p> tags.
-    const NESTABLE_BLOCK_PATTERN = '/(\s*<p>)?\s*\[\!(style|class|box)-start(\d*):([^\]]*)\!\]\s*(<\/p>\s*)?(.*?)(\s*<p>)?\s*\[\!\2-end\3\!\]\s*(<\/p>\s*)?/s';
+    const NESTABLE_BLOCK_PATTERN = '/(<p>|<\/?\s*br>)?\s*\[\!(style|class|box)-start(\d*):([^\]]*)\!\]\s*(<\/p>\s*)?(.*?)(\s*<p>)?\s*\[\!\2-end\3\!\]\s*(<\/p>|<\/?\s*br>)?/s';
     // Replace [!:...!] ... [!!] with a <span style="..."> ... </span>.
     const NESTABLE_INLINE_PATTERN = '/\[\!(\d*):([^\]]*)\!\](.*?)\[\!\1\!\]/s';
     const CLASS_PREFIX = 'cssinject_';
