@@ -21,12 +21,16 @@ info
 read
 warning
 stop
+ok
+wrong
 
 // icons
 icon_lamp
 icon_book
 icon_warning
 icon_stop
+icon_ok
+icon_wrong
 
 // colors
 gray
@@ -96,7 +100,7 @@ u ... text-decoration: underline;
 s ... text-decoration: line-through;
 c:[color] ... color: [color];
 bg:[color] ... background-color:[color];
-[number][unit] ... font-size: [number][unit];
+fs:[number][unit] or just [number][unit] ... font-size: [number][unit];
 ```
 ```
 [!style-start:c:red;1.5em;u;b;!]

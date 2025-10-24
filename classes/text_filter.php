@@ -142,7 +142,7 @@ class text_filter extends \base_text_filter {
         $css = preg_replace('/\bs\b\s*;?/', 'text-decoration:line-through;', $css);
         $css = preg_replace('/\bc:([^;]+);?/', 'color:$1;', $css);
         $css = preg_replace('/\bbg:([^;]+);?/', 'background-color:$1;', $css);
-        $css = preg_replace('/([:;\s])(\d+[^;]+);?/', '$1font-size:$2;', $css);
+        $css = preg_replace('/(\bfs:|(?<=;)|^)\s*(\d+[^;]+);?/', 'font-size:$2;', $css);
         return $css;
     }
 
